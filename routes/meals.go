@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"foodiesbackend/models"
 	"net/http"
 	"strconv"
@@ -13,7 +12,7 @@ func GetMeals(context *gin.Context) {
 	//meal := models.Meal{}
 	meals, err := models.GetAllMeals()
 
-	fmt.Println("i am the architect of my own destruction")
+	// fmt.Println("i am the architect of my own destruction")
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch meals", "error": err.Error()})
@@ -29,7 +28,7 @@ func GetMeal(context *gin.Context) {
 		return
 	}
 
-	meal, err := models.GetMealById(mealId)
+	meal, err := models.GetResponseMealById(mealId)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch meal", "error": err.Error()})
@@ -42,7 +41,17 @@ func CreateMeal(context *gin.Context) {
 	meal := models.Meal{}
 	context.BindJSON(&meal)
 
-	err := meal.Save()
+	clerkId := context.Param("clerkid")
+	Id, err := models.GetUserIdByClerkid(clerkId)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not parse uid", "error": err.Error()})
+		return
+	}
+
+	meal.Creator_id = Id
+
+	err = meal.Save()
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not create meal", "error": err.Error()})
@@ -99,4 +108,20 @@ func DeleteMeal(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, gin.H{"message": "Meal deleted successfully"})
+}
+
+func GetMyMeals(context *gin.Context) {
+	clerkId := context.Param("clerkid")
+	userID, err := models.GetUserIdByClerkid(clerkId)
+
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch meals", "error": err.Error()})
+	}
+
+	meals, err := models.GetMealsByCreatorId(userID)
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch meals", "error": err.Error()})
+	}
+
+	context.JSON(http.StatusOK, meals)
 }
