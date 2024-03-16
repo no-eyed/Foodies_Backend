@@ -15,7 +15,7 @@ func RegisterRoutes(server *gin.Engine) {
 	server.GET("/meals/my-meals/:clerkid", middlewares.VerifyUser(), GetMyMeals)
 
 	server.GET("/user/:clerkid", GetUser)
-	server.POST("/user", CreateUser)
+	server.POST("/user", ManageUser)
 	server.PUT("/user/:clerkid", UpdateUser)
 	server.DELETE("/user/:clerkid", DeleteUser)
 }
